@@ -3,6 +3,7 @@
 import * as headbreaker from "headbreaker";
 import { useEffect, useRef, useState } from "react";
 
+// COMPONENTA PUZZLE
 function DemoJigsaw({
   id,
   puzzleWidth,
@@ -10,12 +11,14 @@ function DemoJigsaw({
   horizontalPieces,
   verticalPieces,
   imageSrc,
+  solveRef,
+  setPieceSize,
+  setTabPaddingPx,
 }) {
   const puzzleRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // 🟢 Ajustare: piesele NU ies din container!
-  // Padding calculat în pixeli
+  // Ajustare: piesele NU ies din container!
   const tabPaddingPx = Math.ceil(
     Math.min(puzzleWidth, puzzleHeight) / Math.max(horizontalPieces, verticalPieces) * 0.17
   );
@@ -24,6 +27,12 @@ function DemoJigsaw({
   const pieceSize = Math.floor(
     Math.min(innerWidth / horizontalPieces / 1.6, innerHeight / verticalPieces / 1.6)
   );
+
+  // Update info piesă & padding către parent
+  useEffect(() => {
+    setPieceSize && setPieceSize(pieceSize);
+    setTabPaddingPx && setTabPaddingPx(tabPaddingPx);
+  }, [pieceSize, tabPaddingPx, setPieceSize, setTabPaddingPx]);
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -50,7 +59,7 @@ function DemoJigsaw({
           y: verticalPieces,
         },
         painter: new headbreaker.painters.Konva(),
-        offset: { // Cheia magiei: offset ca să centrezi puzzle-ul în container
+        offset: {
           x: tabPaddingPx,
           y: tabPaddingPx,
         },
@@ -90,62 +99,65 @@ function DemoJigsaw({
     }
   };
 
+  // Expune solve-ul către parent
+  useEffect(() => {
+    if (solveRef) {
+      solveRef.current = handleSolve;
+    }
+  }, [solveRef, handleSolve]);
+
   return (
-    <>
+    <div
+      style={{
+        display: "flex",
+        width: "100%",
+        height: "100%",
+      }}
+    >
       <div
         style={{
+          width: puzzleWidth,
+          height: puzzleHeight,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          width: "100%",
-          height: "100%",
+          background: "#e8e6e6",
+          border: "2px solid #bc2121",
+          overflow: "hidden",
+          position: "relative",
         }}
       >
         <div
+          ref={puzzleRef}
+          id={id}
           style={{
-            width: puzzleWidth,
-            height: puzzleHeight,
+            width: "100%",
+            height: "100%",
             display: "flex",
-            justifyContent: "center",
             alignItems: "center",
-            background: "#fafafa",
-            border: "2px solid #bc2121",
-            overflow: "hidden",
+            justifyContent: "center",
             position: "relative",
           }}
-        >
-          <div
-            ref={puzzleRef}
-            id={id}
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              position: "relative",
-            }}
-          ></div>
-        </div>
+        ></div>
       </div>
-      <div style={{ textAlign: "center", marginTop: 10 }}>
-        <button onClick={handleSolve}>Solve Puzzle</button>
-        <div style={{ fontSize: 14, color: "#999", marginTop: 6 }}>
-          Dimensiune piesă: <b>{pieceSize}</b> px, Padding: <b>{tabPaddingPx}</b> px
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
 
+// COMPONENTA PRINCIPALĂ
 export default function Home() {
-  const CONTAINER_SIZE = 1000;
+  const CONTAINER_SIZE = 800;
   const images = ["/puzzle.jpg", "/puzzle1.jpg", "/puzzle2.jpg"];
   const getRandomImage = () => images[Math.floor(Math.random() * images.length)];
 
   const [hPieces, setHPieces] = useState(3);
   const [vPieces, setVPieces] = useState(3);
   const [imageSrc, setImageSrc] = useState(getRandomImage());
+  const [pieceSize, setPieceSize] = useState(0);
+  const [tabPaddingPx, setTabPaddingPx] = useState(0);
+
+  // Referință pentru solve
+  const demoJigsawRef = useRef();
 
   function handlePreset(h, v) {
     setHPieces(h);
@@ -160,53 +172,63 @@ export default function Home() {
     }
   }
 
+  function handleSolve() {
+    if (demoJigsawRef.current) {
+      demoJigsawRef.current();
+    }
+  }
+
   return (
     <main style={{ padding: 20 }}>
-      <h1 style={{ textAlign: "center" }}>🧩 Headbreaker Puzzle (robust & clean)</h1>
-
+      {/* Bara de sus: preseturi + solve */}
       <div
         style={{
           marginBottom: 20,
           display: "flex",
-          justifyContent: "center",
-          gap: "15px",
+          justifyContent: "space-between",
+          alignItems: "center",
           flexWrap: "wrap",
+          minHeight: 60,
         }}
       >
-        <button
-          onClick={() => handlePreset(3, 3)}
-          style={{
-            fontWeight: hPieces === 3 && vPieces === 3 ? "bold" : "normal",
-            background: hPieces === 3 && vPieces === 3 ? "#f2e8ff" : undefined,
-          }}
-        >
-          3×3
-        </button>
-        <button
-          onClick={() => handlePreset(4, 4)}
-          style={{
-            fontWeight: hPieces === 4 && vPieces === 4 ? "bold" : "normal",
-            background: hPieces === 4 && vPieces === 4 ? "#f2e8ff" : undefined,
-          }}
-        >
-          4×4
-        </button>
-        <button
-          onClick={() => handlePreset(5, 5)}
-          style={{
-            fontWeight: hPieces === 5 && vPieces === 5 ? "bold" : "normal",
-            background: hPieces === 5 && vPieces === 5 ? "#f2e8ff" : undefined,
-          }}
-        >
-          5×5
-        </button>
-        <label style={{ alignSelf: "center" }}>Alege imagine:&nbsp;</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          style={{ alignSelf: "center" }}
-        />
+        <div style={{ display: "flex", gap: 15, alignItems: "center" }}>
+          <button
+            onClick={() => handlePreset(3, 3)}
+            style={{
+              fontWeight: hPieces === 3 && vPieces === 3 ? "bold" : "normal",
+              background: hPieces === 3 && vPieces === 3 ? "#f2e8ff" : undefined,
+            }}
+          >
+            3×3
+          </button>
+          <button
+            onClick={() => handlePreset(4, 4)}
+            style={{
+              fontWeight: hPieces === 4 && vPieces === 4 ? "bold" : "normal",
+              background: hPieces === 4 && vPieces === 4 ? "#f2e8ff" : undefined,
+            }}
+          >
+            4×4
+          </button>
+          <button
+            onClick={() => handlePreset(5, 5)}
+            style={{
+              fontWeight: hPieces === 5 && vPieces === 5 ? "bold" : "normal",
+              background: hPieces === 5 && vPieces === 5 ? "#f2e8ff" : undefined,
+            }}
+          >
+            5×5
+          </button>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+          <button onClick={handleSolve} style={{ marginBottom: 4, fontWeight: 600 }}>
+            Solve Puzzle
+          </button>
+          {/* <div style={{ fontSize: 13, color: "#999", textAlign: "right" }}>
+            Dimensiune piesă: <b>{pieceSize}</b> px,
+            Padding: <b>{tabPaddingPx}</b> px
+          </div> */}
+        </div>
       </div>
 
       <div
@@ -217,8 +239,6 @@ export default function Home() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          border: "4px solid #333",
-          background: "#fff",
         }}
       >
         <DemoJigsaw
@@ -228,6 +248,9 @@ export default function Home() {
           horizontalPieces={hPieces}
           verticalPieces={vPieces}
           imageSrc={imageSrc}
+          solveRef={demoJigsawRef}
+          setPieceSize={setPieceSize}
+          setTabPaddingPx={setTabPaddingPx}
         />
       </div>
     </main>
