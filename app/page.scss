@@ -1,22 +1,123 @@
-#puzzle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
 
-    .konvajs-content {
-        width: 100%;
-        display: flex;
-        justify-content: center!important;
-        align-items: center!important;
-                    border: 2px solid red;
+// --- Variabile de bază ---
+$color-bg-main: #faf9fa;
+$color-bg-puzzle: #e8e6e6;
+$color-border-puzzle: #bc2121;
+$color-btn-preset: #f2e8ff;
+$color-btn-shuffle: #e2f0fb;
+$color-btn-solve: #e9e2fb;
+$color-border-btn-preset: #dedede;
+$color-border-btn: #b493db;
 
+$radius-btn: 6px;
+$radius-puzzle: 8px;
 
-        canvas {
-            width: 100%;
-            height: 100%;
-            display: flex;
-        justify-content: center!important;
-        align-items: center!important;
-        }
-    }
+// --- Layout principal ---
+.jpz-main {
+  padding: 20px;
+  min-height: 100vh;
+  background: $color-bg-main;
+}
+
+// --- Bara de sus cu preseturi și butoane ---
+.jpz-topbar {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  min-height: 60px;
+  gap: 20px;
+}
+
+.jpz-presets {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.jpz-btn-preset {
+  border-radius: $radius-btn;
+  border: 1px solid $color-border-btn-preset;
+  padding: 6px 14px;
+  background: transparent;
+  font-weight: normal;
+  transition: background 0.2s, font-weight 0.2s;
+
+  &.active {
+    font-weight: bold;
+    background: $color-btn-preset;
+  }
+}
+
+.jpz-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.jpz-btn {
+  font-weight: 600;
+  border-radius: $radius-btn;
+  border: 1px solid $color-border-btn;
+  padding: 8px 14px;
+  background: transparent;
+  transition: background 0.2s;
+
+  &.shuffle {
+    background: $color-btn-shuffle;
+  }
+
+  &.solve {
+    background: $color-btn-solve;
+  }
+}
+
+// --- Container puzzle, responsive, pătrat ---
+.jpz-container-outer {
+  width: 98vw;
+  max-width: 850px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 1 / 1;
+  max-height: 80vh;
+}
+
+.jpz-container-inner {
+  width: 100%;
+  height: 100%;
+  max-width: 800px;
+  max-height: 800px;
+  min-width: 220px;
+  min-height: 220px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  aspect-ratio: 1 / 1;
+}
+
+// --- Puzzle box ---
+.jpz-puzzle-box {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: $color-bg-puzzle;
+  border: 2px solid $color-border-puzzle;
+  overflow: hidden;
+  position: relative;
+  border-radius: $radius-puzzle;
+}
+
+// --- Wrapper pt canvas headbreaker ---
+.jpz-puzzle-canvas {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }

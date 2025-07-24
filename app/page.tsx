@@ -2,6 +2,7 @@
 // @ts-ignore
 import * as headbreaker from "headbreaker";
 import { useEffect, useRef, useState } from "react";
+import "./page.scss";
 
 // COMPONENTA PUZZLE RESPONSIVĂ
 function DemoJigsaw({
@@ -119,41 +120,12 @@ function DemoJigsaw({
   }, [solveRef, shuffleRef, handleSolve, handleShuffle]);
 
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
+    <div className="jpz-puzzle-box">
       <div
-        style={{
-          width: puzzleWidth,
-          height: puzzleHeight,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          background: "#e8e6e6",
-          border: "2px solid #bc2121",
-          overflow: "hidden",
-          position: "relative",
-        }}
-      >
-        <div
-          ref={puzzleRef}
-          id={id}
-          style={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "relative",
-          }}
-        ></div>
-      </div>
+        ref={puzzleRef}
+        id={id}
+        className="jpz-puzzle-canvas"
+      ></div>
     </div>
   );
 }
@@ -233,79 +205,39 @@ export default function Home() {
   }
 
   return (
-    <main style={{ padding: 20, minHeight: "100vh", background: "#faf9fa" }}>
+    <main className="jpz-main">
       {/* Bara de sus: preseturi + solve + shuffle */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-around",
-          marginBottom: 20,
-          alignItems: "center",
-          flexWrap: "wrap",
-          minHeight: 60,
-          gap: 20,
-        }}
-      >
-        <div style={{ display: "flex", gap: 15, alignItems: "center" }}>
+      <div className="jpz-topbar">
+        <div className="jpz-presets">
           <button
+            className={`jpz-btn-preset${hPieces === 3 && vPieces === 3 ? " active" : ""}`}
             onClick={() => handlePreset(3, 3)}
-            style={{
-              fontWeight: hPieces === 3 && vPieces === 3 ? "bold" : "normal",
-              background: hPieces === 3 && vPieces === 3 ? "#f2e8ff" : undefined,
-              borderRadius: 6,
-              border: "1px solid #dedede",
-              padding: "6px 14px",
-            }}
           >
             3×3
           </button>
           <button
+            className={`jpz-btn-preset${hPieces === 4 && vPieces === 4 ? " active" : ""}`}
             onClick={() => handlePreset(4, 4)}
-            style={{
-              fontWeight: hPieces === 4 && vPieces === 4 ? "bold" : "normal",
-              background: hPieces === 4 && vPieces === 4 ? "#f2e8ff" : undefined,
-              borderRadius: 6,
-              border: "1px solid #dedede",
-              padding: "6px 14px",
-            }}
           >
             4×4
           </button>
           <button
+            className={`jpz-btn-preset${hPieces === 5 && vPieces === 5 ? " active" : ""}`}
             onClick={() => handlePreset(5, 5)}
-            style={{
-              fontWeight: hPieces === 5 && vPieces === 5 ? "bold" : "normal",
-              background: hPieces === 5 && vPieces === 5 ? "#f2e8ff" : undefined,
-              borderRadius: 6,
-              border: "1px solid #dedede",
-              padding: "6px 14px",
-            }}
           >
             5×5
           </button>
         </div>
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <div className="jpz-controls">
           <button
+            className="jpz-btn shuffle"
             onClick={handleShuffle}
-            style={{
-              fontWeight: 600,
-              borderRadius: 6,
-              border: "1px solid #b493db",
-              background: "#e2f0fb",
-              padding: "8px 14px",
-            }}
           >
             Shuffle
           </button>
           <button
+            className="jpz-btn solve"
             onClick={handleSolve}
-            style={{
-              fontWeight: 600,
-              borderRadius: 6,
-              border: "1px solid #b493db",
-              background: "#e9e2fb",
-              padding: "8px 14px",
-            }}
           >
             Solve Puzzle
           </button>
@@ -313,34 +245,8 @@ export default function Home() {
       </div>
 
       {/* Container responsive */}
-      <div
-        ref={containerRef}
-        style={{
-          width: "98vw",
-          maxWidth: 850,
-          margin: "0 auto",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          aspectRatio: "1/1",
-          maxHeight: "80vh",
-        }}
-      >
-        {/* Interior pătrat, se scalează automat */}
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            maxWidth: 800,
-            maxHeight: 800,
-            minWidth: 220,
-            minHeight: 220,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            aspectRatio: "1/1",
-          }}
-        >
+      <div ref={containerRef} className="jpz-container-outer">
+        <div className="jpz-container-inner">
           <DemoJigsaw
             id="puzzle"
             puzzleWidth={containerSize}
