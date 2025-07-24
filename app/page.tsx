@@ -28,7 +28,8 @@ function DemoJigsaw({
         height: puzzleHeight,
         outline: new headbreaker.outline.Rounded(),
         proximity: Math.min(puzzleWidth, puzzleHeight) / 25, // ajustabil pentru "snap"
-        borderFill: 0,
+        borderFill: 0.18,
+        grid: true,
         strokeWidth: 2,
         lineSoftness: 0.18,
         // merge: true, // dacă ai painter HTML
@@ -45,6 +46,9 @@ function DemoJigsaw({
       canvas.autogenerate({
         horizontalPiecesCount: horizontalPieces,
         verticalPiecesCount: verticalPieces,
+        grid: true,
+                borderFill: 0.18
+
       });
 
       canvas.shuffleGrid();
@@ -108,7 +112,7 @@ function DemoJigsaw({
 
 export default function Home() {
   // Poți pune orice dimensiune vrei, containerul nu se schimbă niciodată!
-  const CONTAINER_SIZE = 900;
+  const CONTAINER_SIZE = 1000;
   const images = ["/puzzle.jpg", "/puzzle1.jpg", "/puzzle2.jpg"];
   const getRandomImage = () => images[Math.floor(Math.random() * images.length)];
 
