@@ -3,7 +3,7 @@
 import * as headbreaker from "headbreaker";
 import { useEffect, useRef, useState } from "react";
 
-// COMPONENTA PUZZLE
+// COMPONENTA PUZZLE RESPONSIVĂ
 function DemoJigsaw({
   id,
   puzzleWidth,
@@ -12,6 +12,7 @@ function DemoJigsaw({
   verticalPieces,
   imageSrc,
   solveRef,
+  shuffleRef,
   setPieceSize,
   setTabPaddingPx,
 }) {
@@ -20,7 +21,9 @@ function DemoJigsaw({
 
   // Ajustare: piesele NU ies din container!
   const tabPaddingPx = Math.ceil(
-    Math.min(puzzleWidth, puzzleHeight) / Math.max(horizontalPieces, verticalPieces) * 0.17
+    Math.min(puzzleWidth, puzzleHeight) /
+      Math.max(horizontalPieces, verticalPieces) *
+      0.17
   );
   const innerWidth = puzzleWidth - 2 * tabPaddingPx;
   const innerHeight = puzzleHeight - 2 * tabPaddingPx;
@@ -66,7 +69,6 @@ function DemoJigsaw({
       });
 
       canvas.adjustImagesToPuzzleHeight();
-
       canvas.autogenerate({
         horizontalPiecesCount: horizontalPieces,
         verticalPiecesCount: verticalPieces,
@@ -99,19 +101,31 @@ function DemoJigsaw({
     }
   };
 
-  // Expune solve-ul către parent
+  const handleShuffle = () => {
+    if (canvasRef.current) {
+      canvasRef.current.shuffleGrid();
+      canvasRef.current.redraw();
+    }
+  };
+
+  // Expune solve și shuffle către parent
   useEffect(() => {
     if (solveRef) {
       solveRef.current = handleSolve;
     }
-  }, [solveRef, handleSolve]);
+    if (shuffleRef) {
+      shuffleRef.current = handleShuffle;
+    }
+  }, [solveRef, shuffleRef, handleSolve, handleShuffle]);
 
   return (
     <div
       style={{
-        display: "flex",
         width: "100%",
         height: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
       <div
@@ -144,9 +158,8 @@ function DemoJigsaw({
   );
 }
 
-// COMPONENTA PRINCIPALĂ
+// COMPONENTA PRINCIPALĂ, FULL RESPONSIVE
 export default function Home() {
-  const CONTAINER_SIZE = 800;
   const images = ["/puzzle.jpg", "/puzzle1.jpg", "/puzzle2.jpg"];
   const getRandomImage = () => images[Math.floor(Math.random() * images.length)];
 
@@ -156,8 +169,43 @@ export default function Home() {
   const [pieceSize, setPieceSize] = useState(0);
   const [tabPaddingPx, setTabPaddingPx] = useState(0);
 
-  // Referință pentru solve
+  // Responsivitate:
+  const containerRef = useRef(null);
+  const [containerSize, setContainerSize] = useState(400); // default mic, ca fallback
+
+  // Update containerSize la orice resize
+  useEffect(() => {
+    function updateSize() {
+      if (containerRef.current) {
+        // Ia cât de mare poate fi containerul, cât să fie mereu pătrat și max 98vw sau 80vh
+        const width = containerRef.current.offsetWidth;
+        const height = window.innerHeight * 0.8;
+        const size = Math.floor(Math.min(width, height, 800)); // max 800px
+        setContainerSize(size);
+      }
+    }
+
+    updateSize(); // la montare
+
+    let observer;
+    if (window.ResizeObserver) {
+      observer = new ResizeObserver(updateSize);
+      if (containerRef.current) observer.observe(containerRef.current);
+    } else {
+      window.addEventListener("resize", updateSize);
+    }
+
+    window.addEventListener("resize", updateSize);
+
+    return () => {
+      if (observer && containerRef.current) observer.unobserve(containerRef.current);
+      window.removeEventListener("resize", updateSize);
+    };
+  }, []);
+
+  // Referințe pentru solve și shuffle
   const demoJigsawRef = useRef();
+  const demoJigsawShuffleRef = useRef();
 
   function handlePreset(h, v) {
     setHPieces(h);
@@ -178,17 +226,23 @@ export default function Home() {
     }
   }
 
+  function handleShuffle() {
+    if (demoJigsawShuffleRef.current) {
+      demoJigsawShuffleRef.current();
+    }
+  }
+
   return (
-    <main style={{ padding: 20 }}>
-      {/* Bara de sus: preseturi + solve */}
+    <main style={{ padding: 20, minHeight: "100vh", background: "#faf9fa" }}>
+      {/* Bara de sus: preseturi + solve + shuffle */}
       <div
         style={{
-          marginBottom: 20,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
           minHeight: 60,
+          gap: 20,
         }}
       >
         <div style={{ display: "flex", gap: 15, alignItems: "center" }}>
@@ -197,6 +251,9 @@ export default function Home() {
             style={{
               fontWeight: hPieces === 3 && vPieces === 3 ? "bold" : "normal",
               background: hPieces === 3 && vPieces === 3 ? "#f2e8ff" : undefined,
+              borderRadius: 6,
+              border: "1px solid #dedede",
+              padding: "6px 14px",
             }}
           >
             3×3
@@ -206,6 +263,9 @@ export default function Home() {
             style={{
               fontWeight: hPieces === 4 && vPieces === 4 ? "bold" : "normal",
               background: hPieces === 4 && vPieces === 4 ? "#f2e8ff" : undefined,
+              borderRadius: 6,
+              border: "1px solid #dedede",
+              padding: "6px 14px",
             }}
           >
             4×4
@@ -215,43 +275,84 @@ export default function Home() {
             style={{
               fontWeight: hPieces === 5 && vPieces === 5 ? "bold" : "normal",
               background: hPieces === 5 && vPieces === 5 ? "#f2e8ff" : undefined,
+              borderRadius: 6,
+              border: "1px solid #dedede",
+              padding: "6px 14px",
             }}
           >
             5×5
           </button>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-          <button onClick={handleSolve} style={{ marginBottom: 4, fontWeight: 600 }}>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <button
+            onClick={handleShuffle}
+            style={{
+              fontWeight: 600,
+              borderRadius: 6,
+              border: "1px solid #b493db",
+              background: "#e2f0fb",
+              padding: "8px 14px",
+            }}
+          >
+            Shuffle
+          </button>
+          <button
+            onClick={handleSolve}
+            style={{
+              fontWeight: 600,
+              borderRadius: 6,
+              border: "1px solid #b493db",
+              background: "#e9e2fb",
+              padding: "8px 14px",
+            }}
+          >
             Solve Puzzle
           </button>
-          {/* <div style={{ fontSize: 13, color: "#999", textAlign: "right" }}>
-            Dimensiune piesă: <b>{pieceSize}</b> px,
-            Padding: <b>{tabPaddingPx}</b> px
-          </div> */}
         </div>
       </div>
 
+      {/* Container responsive */}
       <div
+        ref={containerRef}
         style={{
-          width: CONTAINER_SIZE,
-          height: CONTAINER_SIZE,
+          width: "98vw",
+          maxWidth: 850,
           margin: "0 auto",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          aspectRatio: "1/1",
+          maxHeight: "80vh",
         }}
       >
-        <DemoJigsaw
-          id="puzzle"
-          puzzleWidth={CONTAINER_SIZE}
-          puzzleHeight={CONTAINER_SIZE}
-          horizontalPieces={hPieces}
-          verticalPieces={vPieces}
-          imageSrc={imageSrc}
-          solveRef={demoJigsawRef}
-          setPieceSize={setPieceSize}
-          setTabPaddingPx={setTabPaddingPx}
-        />
+        {/* Interior pătrat, se scalează automat */}
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            maxWidth: 800,
+            maxHeight: 800,
+            minWidth: 220,
+            minHeight: 220,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            aspectRatio: "1/1",
+          }}
+        >
+          <DemoJigsaw
+            id="puzzle"
+            puzzleWidth={containerSize}
+            puzzleHeight={containerSize}
+            horizontalPieces={hPieces}
+            verticalPieces={vPieces}
+            imageSrc={imageSrc}
+            solveRef={demoJigsawRef}
+            shuffleRef={demoJigsawShuffleRef}
+            setPieceSize={setPieceSize}
+            setTabPaddingPx={setTabPaddingPx}
+          />
+        </div>
       </div>
     </main>
   );
