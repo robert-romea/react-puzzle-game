@@ -14,6 +14,17 @@ function DemoJigsaw({
   const puzzleRef = useRef(null);
   const canvasRef = useRef(null);
 
+  // 🟢 Ajustare: piesele NU ies din container!
+  // Padding calculat în pixeli
+  const tabPaddingPx = Math.ceil(
+    Math.min(puzzleWidth, puzzleHeight) / Math.max(horizontalPieces, verticalPieces) * 0.17
+  );
+  const innerWidth = puzzleWidth - 2 * tabPaddingPx;
+  const innerHeight = puzzleHeight - 2 * tabPaddingPx;
+  const pieceSize = Math.floor(
+    Math.min(innerWidth / horizontalPieces / 1.6, innerHeight / verticalPieces / 1.6)
+  );
+
   useEffect(() => {
     if (canvasRef.current) {
       canvasRef.current = null;
@@ -27,18 +38,22 @@ function DemoJigsaw({
         width: puzzleWidth,
         height: puzzleHeight,
         outline: new headbreaker.outline.Rounded(),
-        proximity: Math.min(puzzleWidth, puzzleHeight) / 25, // ajustabil pentru "snap"
-        borderFill: 0.18,
+        proximity: pieceSize / 5,
+        borderFill: pieceSize / 10,
         grid: true,
         strokeWidth: 2,
         lineSoftness: 0.18,
-        // merge: true, // dacă ai painter HTML
+        pieceSize: pieceSize,
         image: { content: image },
         maxPiecesCount: {
           x: horizontalPieces,
           y: verticalPieces,
         },
         painter: new headbreaker.painters.Konva(),
+        offset: { // Cheia magiei: offset ca să centrezi puzzle-ul în container
+          x: tabPaddingPx,
+          y: tabPaddingPx,
+        },
       });
 
       canvas.adjustImagesToPuzzleHeight();
@@ -47,8 +62,7 @@ function DemoJigsaw({
         horizontalPiecesCount: horizontalPieces,
         verticalPiecesCount: verticalPieces,
         grid: true,
-                borderFill: 0.18
-
+        borderFill: pieceSize / 10,
       });
 
       canvas.shuffleGrid();
@@ -56,7 +70,18 @@ function DemoJigsaw({
 
       canvasRef.current = canvas;
     };
-  }, [id, puzzleWidth, puzzleHeight, horizontalPieces, verticalPieces, imageSrc]);
+  }, [
+    id,
+    puzzleWidth,
+    puzzleHeight,
+    horizontalPieces,
+    verticalPieces,
+    imageSrc,
+    pieceSize,
+    tabPaddingPx,
+    innerWidth,
+    innerHeight,
+  ]);
 
   const handleSolve = () => {
     if (canvasRef.current) {
@@ -105,18 +130,19 @@ function DemoJigsaw({
       </div>
       <div style={{ textAlign: "center", marginTop: 10 }}>
         <button onClick={handleSolve}>Solve Puzzle</button>
+        <div style={{ fontSize: 14, color: "#999", marginTop: 6 }}>
+          Dimensiune piesă: <b>{pieceSize}</b> px, Padding: <b>{tabPaddingPx}</b> px
+        </div>
       </div>
     </>
   );
 }
 
 export default function Home() {
-  // Poți pune orice dimensiune vrei, containerul nu se schimbă niciodată!
   const CONTAINER_SIZE = 1000;
   const images = ["/puzzle.jpg", "/puzzle1.jpg", "/puzzle2.jpg"];
   const getRandomImage = () => images[Math.floor(Math.random() * images.length)];
 
-  // 3x3 default
   const [hPieces, setHPieces] = useState(3);
   const [vPieces, setVPieces] = useState(3);
   const [imageSrc, setImageSrc] = useState(getRandomImage());
@@ -183,7 +209,6 @@ export default function Home() {
         />
       </div>
 
-      {/* Container puzzle fix */}
       <div
         style={{
           width: CONTAINER_SIZE,
