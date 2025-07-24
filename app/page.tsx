@@ -238,7 +238,8 @@ export default function Home() {
       <div
         style={{
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "space-around",
+          marginBottom: 20,
           alignItems: "center",
           flexWrap: "wrap",
           minHeight: 60,
