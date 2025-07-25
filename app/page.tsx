@@ -21,29 +21,34 @@ function DemoJigsaw({
   const puzzleRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // -- FIX PIESE MARI (NU mai împărți la 1.6) --
+  // Calculate padding and piece size for the puzzle (ensures big pieces)
   const tabPaddingPx = Math.ceil(
     Math.min(puzzleWidth, puzzleHeight) / Math.max(horizontalPieces, verticalPieces) * 0.17
   );
+
   const innerWidth = puzzleWidth - 2 * tabPaddingPx;
   const innerHeight = puzzleHeight - 2 * tabPaddingPx;
+
+  // Use 0.95 to leave a small gap between pieces (no division by 1.6 anymore!)
   const pieceSize = Math.floor(
-    Math.min(innerWidth / horizontalPieces / 1.6, innerHeight / verticalPieces / 1.6) * 0.95
+    Math.min(innerWidth / horizontalPieces / 1.6,  innerHeight / verticalPieces / 1.6) * 0.95
   );
 
+  // Update parent with piece size and padding
   useEffect(() => {
     setPieceSize && setPieceSize(pieceSize);
     setTabPaddingPx && setTabPaddingPx(tabPaddingPx);
   }, [pieceSize, tabPaddingPx, setPieceSize, setTabPaddingPx]);
 
   useEffect(() => {
-    // -- NU genera puzzle-ul dacă e prea mic containerul --
+    // Do not generate puzzle if the container is too small (prevents tiny pieces)
     if (puzzleWidth < 200 || puzzleHeight < 200) return;
 
     if (canvasRef.current) {
       canvasRef.current = null;
     }
 
+    // Prepare image for puzzle background (with "cover" logic)
     const image = new window.Image();
     image.src = imageSrc;
     image.crossOrigin = "anonymous";
@@ -51,20 +56,24 @@ function DemoJigsaw({
     image.onload = () => {
       const imgRatio = image.width / image.height;
       const canvasRatio = puzzleWidth / puzzleHeight;
+
       let drawWidth, drawHeight, offsetX, offsetY;
 
       if (imgRatio > canvasRatio) {
+        // Image is wider than the canvas: crop horizontally
         drawHeight = puzzleHeight;
         drawWidth = drawHeight * imgRatio;
         offsetX = -(drawWidth - puzzleWidth) / 2;
         offsetY = 0;
       } else {
+        // Image is taller: crop vertically
         drawWidth = puzzleWidth;
         drawHeight = drawWidth / imgRatio;
         offsetX = 0;
         offsetY = -(drawHeight - puzzleHeight) / 2;
       }
 
+      // Draw image into an offscreen canvas, "cover" style
       const offscreen = document.createElement('canvas');
       offscreen.width = puzzleWidth;
       offscreen.height = puzzleHeight;
@@ -75,6 +84,7 @@ function DemoJigsaw({
       processedImage.src = offscreen.toDataURL();
 
       processedImage.onload = () => {
+        // Init headbreaker puzzle with correct size and processed image
         const canvas = new headbreaker.Canvas(id, {
           width: puzzleWidth,
           height: puzzleHeight,
@@ -97,6 +107,7 @@ function DemoJigsaw({
           },
         });
 
+        // Generate pieces and shuffle
         canvas.adjustImagesToPuzzleHeight();
         canvas.autogenerate({
           horizontalPiecesCount: horizontalPieces,
@@ -108,6 +119,7 @@ function DemoJigsaw({
         canvas.shuffleGrid();
         canvas.draw();
 
+        // Puzzle solved detection (manual or via button)
         canvas.attachSolvedValidator();
         canvas.onValid(() => {
           console.log("Puzzle solved (manual drag&drop)!");
@@ -116,6 +128,7 @@ function DemoJigsaw({
 
         canvasRef.current = canvas;
 
+        // Reset solved overlay each time a new puzzle is generated
         if (resetSolved) resetSolved();
       };
     };
@@ -132,6 +145,7 @@ function DemoJigsaw({
     innerHeight,
   ]);
 
+  // Call this for "Solve Puzzle" button
   const handleSolve = () => {
     if (canvasRef.current) {
       canvasRef.current.solve();
@@ -141,6 +155,7 @@ function DemoJigsaw({
     }
   };
 
+  // Call this for "Shuffle" button
   const handleShuffle = () => {
     if (canvasRef.current) {
       canvasRef.current.shuffleGrid();
@@ -149,6 +164,7 @@ function DemoJigsaw({
     }
   };
 
+  // Expose handlers to parent via refs
   useEffect(() => {
     if (solveRef) {
       solveRef.current = handleSolve;
@@ -180,9 +196,11 @@ export default function Home() {
   const [tabPaddingPx, setTabPaddingPx] = useState(0);
   const [solved, setSolved] = useState(false);
 
+  // Fallback is large enough to prevent tiny puzzle on first load
   const containerRef = useRef(null);
-  const [containerSize, setContainerSize] = useState(700); // fallback decent, dar va fi actualizat rapid
+  const [containerSize, setContainerSize] = useState(700);
 
+  // Make the puzzle fully responsive on resize
   useEffect(() => {
     function updateSize() {
       if (containerRef.current) {
@@ -210,6 +228,7 @@ export default function Home() {
     };
   }, []);
 
+  // Handlers for controlling puzzle from UI buttons
   const demoJigsawRef = useRef();
   const demoJigsawShuffleRef = useRef();
 
@@ -241,11 +260,13 @@ export default function Home() {
     }
   }
 
+  // Called when the puzzle is solved (by drag or by button)
   function handleSolved() {
     setSolved(true);
     console.log("Solved state set!");
   }
 
+  // Called to hide the solved overlay (e.g. on shuffle or preset/image change)
   function handleResetSolved() {
     setSolved(false);
   }
@@ -273,6 +294,7 @@ export default function Home() {
             5×5
           </button>
         </div>
+
         <div className="jpz-controls">
           <button className="jpz-btn shuffle" onClick={handleShuffle}>
             Shuffle
@@ -300,9 +322,10 @@ export default function Home() {
             onSolved={handleSolved}
             resetSolved={handleResetSolved}
           />
+
           {solved && (
             <div className="jpz-solved-overlay">
-              <span>🎉 Felicitări, ai rezolvat puzzle-ul!</span>
+              <span>🎉 Congratulations, you solved the puzzle!</span>
             </div>
           )}
         </div>
